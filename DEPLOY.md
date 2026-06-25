@@ -17,6 +17,8 @@ Na Vercel, importe o repositório e configure:
 
 Também existe um `vercel.json` na raiz para forçar o build do `frontend/` caso a Vercel seja configurada pela raiz do repositório. Mesmo assim, a configuração mais limpa é usar `Root Directory = frontend`.
 
+Não crie configuração manual de `functions` para `app/api/...` no painel ou em `frontend/vercel.json`. Os Route Handlers do Next são detectados automaticamente pela Vercel.
+
 Variável de ambiente obrigatória:
 
 ```env
