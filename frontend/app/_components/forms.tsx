@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import {
   apiBaseUrl,
@@ -10,6 +11,7 @@ import {
   type StoreLot,
   type Transaction,
 } from "../_lib/api";
+import { useToast } from "./toast";
 
 function today() {
   return new Date().toISOString().slice(0, 10);
@@ -23,7 +25,25 @@ const inputClass =
   "h-12 w-full rounded-2xl border border-[var(--outline-variant)] bg-[var(--surface-card)] px-3 text-sm text-[var(--on-surface)] outline-none transition placeholder:text-[var(--outline)] focus:border-[var(--primary)] focus:ring-4 focus:ring-purple-100";
 
 const buttonClass =
-  "inline-flex h-12 items-center justify-center rounded-2xl bg-[var(--primary)] px-4 text-sm font-semibold text-white shadow-sm transition active:scale-[0.98] hover:bg-[var(--primary-strong)]";
+  "inline-flex h-12 items-center justify-center rounded-2xl bg-[var(--primary)] px-4 text-sm font-semibold text-white shadow-sm transition active:scale-[0.98] hover:bg-[var(--primary-strong)] disabled:cursor-not-allowed disabled:opacity-60";
+
+function SubmitButton({
+  children,
+  disabled,
+  pendingLabel = "Processando...",
+}: {
+  children: React.ReactNode;
+  disabled?: boolean;
+  pendingLabel?: string;
+}) {
+  const { pending } = useFormStatus();
+
+  return (
+    <button className={buttonClass} disabled={disabled || pending} type="submit">
+      {pending ? pendingLabel : children}
+    </button>
+  );
+}
 
 async function post(path: string, body: Record<string, unknown>) {
   const response = await fetch(`${apiBaseUrl}${path}`, {
@@ -50,6 +70,7 @@ export function TransactionForm({
   categories: Category[];
 }) {
   const router = useRouter();
+  const toast = useToast();
   const [error, setError] = useState("");
   const sortedCards = useMemo(() => [...cards].sort((a, b) => a.name.localeCompare(b.name, "pt-BR")), [cards]);
   const sortedResponsibles = useMemo(
@@ -67,11 +88,15 @@ export function TransactionForm({
 
   async function submit(formData: FormData) {
     setError("");
+    const toastId = toast.show("Salvando lançamento...", "loading");
     try {
       await post("/api/transactions", Object.fromEntries(formData));
+      toast.update(toastId, "Lançamento salvo com sucesso.", "success");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao salvar.");
+      const message = err instanceof Error ? err.message : "Falha ao salvar.";
+      setError(message);
+      toast.update(toastId, message, "error");
     }
   }
 
@@ -150,15 +175,16 @@ export function TransactionForm({
         </p>
       ) : null}
       {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}
-      <button className={buttonClass} disabled={!formReady} type="submit">
+      <SubmitButton disabled={!formReady} pendingLabel="Salvando lançamento...">
         Salvar lançamento
-      </button>
+      </SubmitButton>
     </form>
   );
 }
 
 export function PaymentForm({ transactions }: { transactions: Transaction[] }) {
   const router = useRouter();
+  const toast = useToast();
   const sortedTransactions = useMemo(
     () => [...transactions].sort((a, b) => a.description.localeCompare(b.description, "pt-BR")),
     [transactions],
@@ -172,11 +198,15 @@ export function PaymentForm({ transactions }: { transactions: Transaction[] }) {
 
   async function submit(formData: FormData) {
     setError("");
+    const toastId = toast.show("Registrando pagamento...", "loading");
     try {
       await post(`/api/transactions/${transactionId}/payments`, Object.fromEntries(formData));
+      toast.update(toastId, "Pagamento registrado com sucesso.", "success");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao salvar pagamento.");
+      const message = err instanceof Error ? err.message : "Falha ao salvar pagamento.";
+      setError(message);
+      toast.update(toastId, message, "error");
     }
   }
 
@@ -210,25 +240,30 @@ export function PaymentForm({ transactions }: { transactions: Transaction[] }) {
           Nenhuma transação cadastrada para receber pagamento.
         </p>
       ) : null}
-      <button className={buttonClass} disabled={sortedTransactions.length === 0} type="submit">
+      <SubmitButton disabled={sortedTransactions.length === 0} pendingLabel="Registrando pagamento...">
         Registrar pagamento
-      </button>
+      </SubmitButton>
     </form>
   );
 }
 
 export function InvoiceCheckForm({ cards }: { cards: CreditCard[] }) {
+  const toast = useToast();
   const [result, setResult] = useState<{ systemTotal: number; difference: number } | null>(null);
   const [error, setError] = useState("");
   const sortedCards = useMemo(() => [...cards].sort((a, b) => a.name.localeCompare(b.name, "pt-BR")), [cards]);
 
   async function submit(formData: FormData) {
     setError("");
+    const toastId = toast.show("Conferindo fatura...", "loading");
     try {
       const payload = await post("/api/invoices/check", Object.fromEntries(formData));
       setResult(payload);
+      toast.update(toastId, "Fatura conferida com sucesso.", "success");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao conferir fatura.");
+      const message = err instanceof Error ? err.message : "Falha ao conferir fatura.";
+      setError(message);
+      toast.update(toastId, message, "error");
     }
   }
 
@@ -265,15 +300,16 @@ export function InvoiceCheckForm({ cards }: { cards: CreditCard[] }) {
           Cadastre um cartão antes de conferir faturas.
         </p>
       ) : null}
-      <button className={buttonClass} disabled={sortedCards.length === 0} type="submit">
+      <SubmitButton disabled={sortedCards.length === 0} pendingLabel="Conferindo fatura...">
         Conferir fatura
-      </button>
+      </SubmitButton>
     </form>
   );
 }
 
 export function StoreLotForms({ lots, cards }: { lots: StoreLot[]; cards: CreditCard[] }) {
   const router = useRouter();
+  const toast = useToast();
   const sortedLots = useMemo(
     () => [...lots].sort((a, b) => (a.dueDate ?? "9999-12-31").localeCompare(b.dueDate ?? "9999-12-31")),
     [lots],
@@ -285,21 +321,29 @@ export function StoreLotForms({ lots, cards }: { lots: StoreLot[]; cards: Credit
 
   async function createLot(formData: FormData) {
     setError("");
+    const toastId = toast.show("Criando lote...", "loading");
     try {
       await post("/api/store/lots", Object.fromEntries(formData));
+      toast.update(toastId, "Lote criado com sucesso.", "success");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao criar lote.");
+      const message = err instanceof Error ? err.message : "Falha ao criar lote.";
+      setError(message);
+      toast.update(toastId, message, "error");
     }
   }
 
   async function registerSale(formData: FormData) {
     setError("");
+    const toastId = toast.show("Registrando venda...", "loading");
     try {
       await post(`/api/store/lots/${lotId}/sales`, Object.fromEntries(formData));
+      toast.update(toastId, "Venda registrada com sucesso.", "success");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao registrar venda.");
+      const message = err instanceof Error ? err.message : "Falha ao registrar venda.";
+      setError(message);
+      toast.update(toastId, message, "error");
     }
   }
 
@@ -331,9 +375,9 @@ export function StoreLotForms({ lots, cards }: { lots: StoreLot[]; cards: Credit
             <input className={inputClass} name="dueDate" type="date" />
           </label>
         </div>
-        <button className={buttonClass} type="submit">
+        <SubmitButton pendingLabel="Criando lote...">
           Criar lote
-        </button>
+        </SubmitButton>
       </form>
 
       <form action={registerSale} className="grid gap-3 border-t border-[var(--outline-variant)] pt-5">
@@ -377,9 +421,9 @@ export function StoreLotForms({ lots, cards }: { lots: StoreLot[]; cards: Credit
             Cadastre um cartão antes de registrar vendas da loja.
           </p>
         ) : null}
-        <button className={buttonClass} disabled={sortedLots.length === 0 || sortedCards.length === 0} type="submit">
+        <SubmitButton disabled={sortedLots.length === 0 || sortedCards.length === 0} pendingLabel="Registrando venda...">
           Abater venda do lote
-        </button>
+        </SubmitButton>
       </form>
     </div>
   );
@@ -398,9 +442,9 @@ export function BillingFilters({ responsibles }: { responsibles: Responsible[] }
         ))}
       </select>
       <input className={inputClass} defaultValue={thisMonth()} name="month" type="month" />
-      <button className={buttonClass} disabled={sortedResponsibles.length === 0} type="submit">
+      <SubmitButton disabled={sortedResponsibles.length === 0} pendingLabel="Gerando resumo...">
         Gerar resumo
-      </button>
+      </SubmitButton>
     </form>
   );
 }

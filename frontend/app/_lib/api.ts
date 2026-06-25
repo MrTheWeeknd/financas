@@ -132,11 +132,11 @@ async function request<T>(path: string, fallback: T, init?: RequestInit): Promis
   try {
     const response = await fetch(`${apiBaseUrl}${path}`, {
       ...init,
+      cache: "no-store",
       headers: {
         "Content-Type": "application/json",
         ...init?.headers,
       },
-      next: init?.method ? undefined : { revalidate: 5 },
     });
 
     if (!response.ok) return fallback;

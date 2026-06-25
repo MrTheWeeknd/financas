@@ -1,16 +1,36 @@
 "use client";
 
 import { useState } from "react";
+import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import { Pencil, Save, Trash2 } from "lucide-react";
 import { apiBaseUrl, type Category, type CreditCard, type Responsible } from "../_lib/api";
 import { CategoryIcon } from "./ui";
+import { useToast } from "./toast";
 
 const inputClass =
   "h-11 w-full rounded-2xl border border-[var(--outline-variant)] bg-[var(--surface-card)] px-3 text-sm text-[var(--on-surface)] outline-none transition placeholder:text-[var(--outline)] focus:border-[var(--primary)] focus:ring-4 focus:ring-purple-100";
 
 const compactButtonClass =
-  "inline-flex h-10 items-center justify-center gap-2 rounded-2xl px-3 text-sm font-semibold transition active:scale-[0.98]";
+  "inline-flex h-10 items-center justify-center gap-2 rounded-2xl px-3 text-sm font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60";
+
+function SubmitButton({
+  children,
+  pendingLabel = "Salvando...",
+  className,
+}: {
+  children: React.ReactNode;
+  pendingLabel?: string;
+  className: string;
+}) {
+  const { pending } = useFormStatus();
+
+  return (
+    <button className={className} disabled={pending} type="submit">
+      {pending ? pendingLabel : children}
+    </button>
+  );
+}
 
 async function request(path: string, init: RequestInit) {
   const response = await fetch(`${apiBaseUrl}${path}`, {
@@ -69,41 +89,54 @@ function ListDetails({
 
 export function CardsCrud({ cards }: { cards: CreditCard[] }) {
   const router = useRouter();
+  const toast = useToast();
   const [error, setError] = useState("");
 
   async function create(formData: FormData) {
     setError("");
+    const toastId = toast.show("Salvando cartão...", "loading");
     try {
       await request("/api/cards", {
         method: "POST",
         body: JSON.stringify(Object.fromEntries(formData)),
       });
+      toast.update(toastId, "Cartão salvo com sucesso.", "success");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao criar cartão.");
+      const message = err instanceof Error ? err.message : "Erro ao criar cartão.";
+      setError(message);
+      toast.update(toastId, message, "error");
     }
   }
 
   async function update(cardId: string, formData: FormData) {
     setError("");
+    const toastId = toast.show("Atualizando cartão...", "loading");
     try {
       await request(`/api/cards/${cardId}`, {
         method: "PUT",
         body: JSON.stringify(Object.fromEntries(formData)),
       });
+      toast.update(toastId, "Cartão atualizado com sucesso.", "success");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao atualizar cartão.");
+      const message = err instanceof Error ? err.message : "Erro ao atualizar cartão.";
+      setError(message);
+      toast.update(toastId, message, "error");
     }
   }
 
   async function remove(cardId: string) {
     setError("");
+    const toastId = toast.show("Excluindo cartão...", "loading");
     try {
       await request(`/api/cards/${cardId}`, { method: "DELETE" });
+      toast.update(toastId, "Cartão excluído com sucesso.", "success");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao excluir cartão.");
+      const message = err instanceof Error ? err.message : "Erro ao excluir cartão.";
+      setError(message);
+      toast.update(toastId, message, "error");
     }
   }
 
@@ -125,9 +158,9 @@ export function CardsCrud({ cards }: { cards: CreditCard[] }) {
             <input className={inputClass} min="1" max="31" name="closingDay" placeholder="Ex.: 25" required type="number" />
           </FieldLabel>
         </div>
-        <button className={`${compactButtonClass} bg-[var(--primary)] text-white`} type="submit">
+        <SubmitButton className={`${compactButtonClass} bg-[var(--primary)] text-white`} pendingLabel="Salvando cartão...">
           Salvar cartão
-        </button>
+        </SubmitButton>
       </form>
 
       {error ? <p className="text-sm font-medium text-[var(--error)]">{error}</p> : null}
@@ -153,9 +186,9 @@ export function CardsCrud({ cards }: { cards: CreditCard[] }) {
               <input className={inputClass} defaultValue={card.color} name="color" required type="color" />
             </FieldLabel>
             <div className="flex items-end gap-2">
-              <button className={`${compactButtonClass} bg-[var(--surface-container)] text-[var(--primary-strong)]`} type="submit">
+              <SubmitButton className={`${compactButtonClass} bg-[var(--surface-container)] text-[var(--primary-strong)]`}>
                 <Save className="h-4 w-4" />
-              </button>
+              </SubmitButton>
               <button
                 className={`${compactButtonClass} bg-red-50 text-[var(--error)]`}
                 onClick={() => remove(card.id)}
@@ -173,10 +206,12 @@ export function CardsCrud({ cards }: { cards: CreditCard[] }) {
 
 export function CategoriesCrud({ categories }: { categories: Category[] }) {
   const router = useRouter();
+  const toast = useToast();
   const [error, setError] = useState("");
 
   async function create(formData: FormData) {
     setError("");
+    const toastId = toast.show("Salvando categoria...", "loading");
     try {
       await request("/api/categories", {
         method: "POST",
@@ -185,14 +220,18 @@ export function CategoriesCrud({ categories }: { categories: Category[] }) {
           active: activeFromForm(formData),
         }),
       });
+      toast.update(toastId, "Categoria salva com sucesso.", "success");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao criar categoria.");
+      const message = err instanceof Error ? err.message : "Erro ao criar categoria.";
+      setError(message);
+      toast.update(toastId, message, "error");
     }
   }
 
   async function update(categoryId: string, formData: FormData) {
     setError("");
+    const toastId = toast.show("Atualizando categoria...", "loading");
     try {
       await request(`/api/categories/${categoryId}`, {
         method: "PUT",
@@ -201,19 +240,26 @@ export function CategoriesCrud({ categories }: { categories: Category[] }) {
           active: activeFromForm(formData),
         }),
       });
+      toast.update(toastId, "Categoria atualizada com sucesso.", "success");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao atualizar categoria.");
+      const message = err instanceof Error ? err.message : "Erro ao atualizar categoria.";
+      setError(message);
+      toast.update(toastId, message, "error");
     }
   }
 
   async function remove(categoryId: string) {
     setError("");
+    const toastId = toast.show("Excluindo categoria...", "loading");
     try {
       await request(`/api/categories/${categoryId}`, { method: "DELETE" });
+      toast.update(toastId, "Categoria excluída com sucesso.", "success");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao excluir categoria.");
+      const message = err instanceof Error ? err.message : "Erro ao excluir categoria.";
+      setError(message);
+      toast.update(toastId, message, "error");
     }
   }
 
@@ -249,9 +295,9 @@ export function CategoriesCrud({ categories }: { categories: Category[] }) {
           <input defaultChecked name="active" type="checkbox" />
           Categoria ativa
         </label>
-        <button className={`${compactButtonClass} bg-[var(--primary)] text-white`} type="submit">
+        <SubmitButton className={`${compactButtonClass} bg-[var(--primary)] text-white`} pendingLabel="Salvando categoria...">
           Salvar categoria
-        </button>
+        </SubmitButton>
       </form>
 
       {error ? <p className="text-sm font-medium text-[var(--error)]">{error}</p> : null}
@@ -294,9 +340,9 @@ export function CategoriesCrud({ categories }: { categories: Category[] }) {
               Ativa
             </label>
             <div className="flex items-end gap-2">
-              <button className={`${compactButtonClass} bg-[var(--surface-container)] text-[var(--primary-strong)]`} type="submit">
+              <SubmitButton className={`${compactButtonClass} bg-[var(--surface-container)] text-[var(--primary-strong)]`}>
                 <Pencil className="h-4 w-4" />
-              </button>
+              </SubmitButton>
               <button
                 className={`${compactButtonClass} bg-red-50 text-[var(--error)]`}
                 onClick={() => remove(category.id)}
@@ -314,10 +360,12 @@ export function CategoriesCrud({ categories }: { categories: Category[] }) {
 
 export function ResponsiblesCrud({ responsibles }: { responsibles: Responsible[] }) {
   const router = useRouter();
+  const toast = useToast();
   const [error, setError] = useState("");
 
   async function create(formData: FormData) {
     setError("");
+    const toastId = toast.show("Salvando responsável...", "loading");
     try {
       await request("/api/responsibles", {
         method: "POST",
@@ -326,14 +374,18 @@ export function ResponsiblesCrud({ responsibles }: { responsibles: Responsible[]
           active: activeFromForm(formData),
         }),
       });
+      toast.update(toastId, "Responsável salvo com sucesso.", "success");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao criar responsável.");
+      const message = err instanceof Error ? err.message : "Erro ao criar responsável.";
+      setError(message);
+      toast.update(toastId, message, "error");
     }
   }
 
   async function update(responsibleId: string, formData: FormData) {
     setError("");
+    const toastId = toast.show("Atualizando responsável...", "loading");
     try {
       await request(`/api/responsibles/${responsibleId}`, {
         method: "PUT",
@@ -342,19 +394,26 @@ export function ResponsiblesCrud({ responsibles }: { responsibles: Responsible[]
           active: activeFromForm(formData),
         }),
       });
+      toast.update(toastId, "Responsável atualizado com sucesso.", "success");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao atualizar responsável.");
+      const message = err instanceof Error ? err.message : "Erro ao atualizar responsável.";
+      setError(message);
+      toast.update(toastId, message, "error");
     }
   }
 
   async function remove(responsibleId: string) {
     setError("");
+    const toastId = toast.show("Excluindo responsável...", "loading");
     try {
       await request(`/api/responsibles/${responsibleId}`, { method: "DELETE" });
+      toast.update(toastId, "Responsável excluído com sucesso.", "success");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao excluir responsável.");
+      const message = err instanceof Error ? err.message : "Erro ao excluir responsável.";
+      setError(message);
+      toast.update(toastId, message, "error");
     }
   }
 
@@ -377,9 +436,9 @@ export function ResponsiblesCrud({ responsibles }: { responsibles: Responsible[]
           <input defaultChecked name="active" type="checkbox" />
           Responsável ativo
         </label>
-        <button className={`${compactButtonClass} bg-[var(--primary)] text-white`} type="submit">
+        <SubmitButton className={`${compactButtonClass} bg-[var(--primary)] text-white`} pendingLabel="Salvando responsável...">
           Salvar responsável
-        </button>
+        </SubmitButton>
       </form>
 
       {error ? <p className="text-sm font-medium text-[var(--error)]">{error}</p> : null}
@@ -406,9 +465,9 @@ export function ResponsiblesCrud({ responsibles }: { responsibles: Responsible[]
               Ativo
             </label>
             <div className="flex items-end gap-2">
-              <button className={`${compactButtonClass} bg-[var(--surface-container)] text-[var(--primary-strong)]`} type="submit">
+              <SubmitButton className={`${compactButtonClass} bg-[var(--surface-container)] text-[var(--primary-strong)]`}>
                 <Save className="h-4 w-4" />
-              </button>
+              </SubmitButton>
               <button
                 className={`${compactButtonClass} bg-red-50 text-[var(--error)]`}
                 onClick={() => remove(responsible.id)}
