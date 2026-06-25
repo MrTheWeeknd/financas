@@ -4,7 +4,7 @@ export async function connectDatabase() {
   const uri = process.env.MONGODB_URI;
 
   if (!uri) {
-    console.info("MONGODB_URI não informado. Rodando com dados em memória.");
+    console.info("MONGODB_URI não informado. Rodando com dados mockados.");
     return;
   }
 
