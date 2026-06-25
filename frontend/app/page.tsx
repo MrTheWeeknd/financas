@@ -11,7 +11,8 @@ import Link from "next/link";
 import { AppShell } from "./_components/app-shell";
 import { BalanceChart } from "./_components/balance-chart";
 import { Card, CategoryIcon, PageHeader } from "./_components/ui";
-import { formatCurrency, formatDate, getDashboard } from "./_lib/api";
+import { formatCurrency, formatDate } from "./_lib/api";
+import { getDashboard } from "./_lib/server-data";
 
 export const dynamic = "force-dynamic";
 

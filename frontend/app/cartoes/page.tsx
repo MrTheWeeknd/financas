@@ -3,13 +3,8 @@ import { AppShell } from "../_components/app-shell";
 import { BillingFilters, InvoiceCheckForm } from "../_components/forms";
 import { CopyButton } from "../_components/copy-button";
 import { Card, PageHeader } from "../_components/ui";
-import {
-  formatCurrency,
-  getBillingSummary,
-  getCards,
-  getResponsibles,
-  getTransactions,
-} from "../_lib/api";
+import { formatCurrency } from "../_lib/api";
+import { getBillingSummary, getCards, getResponsibles, getTransactions } from "../_lib/server-data";
 
 export const dynamic = "force-dynamic";
 

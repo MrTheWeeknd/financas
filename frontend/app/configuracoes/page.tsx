@@ -1,7 +1,7 @@
 import { AppShell } from "../_components/app-shell";
 import { CardsCrud, CategoriesCrud, ResponsiblesCrud } from "../_components/settings-crud";
 import { Card, PageHeader } from "../_components/ui";
-import { getCards, getCategories, getResponsibles } from "../_lib/api";
+import { getCards, getCategories, getResponsibles } from "../_lib/server-data";
 
 export const dynamic = "force-dynamic";
 

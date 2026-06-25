@@ -2,7 +2,8 @@ import { Store } from "lucide-react";
 import { AppShell } from "../_components/app-shell";
 import { StoreLotForms } from "../_components/forms";
 import { Card, PageHeader } from "../_components/ui";
-import { formatCurrency, formatDate, getCards, getStoreLots } from "../_lib/api";
+import { formatCurrency, formatDate } from "../_lib/api";
+import { getCards, getStoreLots } from "../_lib/server-data";
 
 export const dynamic = "force-dynamic";
 

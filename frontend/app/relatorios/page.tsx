@@ -2,12 +2,8 @@ import { AppShell } from "../_components/app-shell";
 import { CopyButton } from "../_components/copy-button";
 import { BillingFilters, InvoiceCheckForm } from "../_components/forms";
 import { Card, PageHeader } from "../_components/ui";
-import {
-  formatCurrency,
-  getBillingSummary,
-  getCards,
-  getResponsibles,
-} from "../_lib/api";
+import { formatCurrency } from "../_lib/api";
+import { getBillingSummary, getCards, getResponsibles } from "../_lib/server-data";
 
 export const dynamic = "force-dynamic";
 

@@ -1,14 +1,8 @@
 import { AppShell } from "../_components/app-shell";
 import { PaymentForm, TransactionForm } from "../_components/forms";
 import { Card, CategoryIcon, PageHeader } from "../_components/ui";
-import {
-  formatCurrency,
-  formatDate,
-  getCards,
-  getCategories,
-  getResponsibles,
-  getTransactions,
-} from "../_lib/api";
+import { formatCurrency, formatDate } from "../_lib/api";
+import { getCards, getCategories, getResponsibles, getTransactions } from "../_lib/server-data";
 
 export const dynamic = "force-dynamic";
 
