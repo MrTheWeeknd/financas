@@ -17,6 +17,8 @@ Na Vercel, importe o repositório e configure:
 
 Não use `npm --prefix frontend ...` quando o `Root Directory` já estiver configurado como `frontend`, porque a Vercel passa a executar os comandos dentro dessa pasta.
 
+Não use `vercel build` como Build Command no painel. Se o log mostrar `Running "vercel build"` e terminar em poucos milissegundos, a Vercel não executou o build do Next.js; o deploy pode ficar "Ready", mas servir uma página 404 por falta de output real.
+
 Não crie configuração manual de `functions` para `app/api/...` no painel ou em `frontend/vercel.json`. Os Route Handlers do Next são detectados automaticamente pela Vercel.
 
 Se aparecer `ENOENT: no such file or directory, lstat '/vercel/path0/.next/package.json'` mesmo com o log mostrando `Build Completed in /vercel/output`, a falha está depois do build, na etapa de empacotar o output.
