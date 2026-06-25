@@ -4,6 +4,8 @@ import { StoreLotForms } from "../_components/forms";
 import { Card, PageHeader } from "../_components/ui";
 import { formatCurrency, formatDate, getCards, getStoreLots } from "../_lib/api";
 
+export const dynamic = "force-dynamic";
+
 function percent(value: number) {
   return `${Math.round(value)}%`;
 }

@@ -140,7 +140,9 @@ async function request<T>(path: string, fallback: T, init?: RequestInit): Promis
     });
 
     if (!response.ok) return fallback;
-    return response.json();
+    if (!response.headers.get("content-type")?.includes("application/json")) return fallback;
+
+    return await response.json();
   } catch {
     return fallback;
   }

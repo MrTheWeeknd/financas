@@ -13,6 +13,8 @@ import { BalanceChart } from "./_components/balance-chart";
 import { Card, CategoryIcon, PageHeader } from "./_components/ui";
 import { formatCurrency, formatDate, getDashboard } from "./_lib/api";
 
+export const dynamic = "force-dynamic";
+
 function SummaryCard({
   icon,
   label,

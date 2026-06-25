@@ -3,6 +3,8 @@ import { CardsCrud, CategoriesCrud, ResponsiblesCrud } from "../_components/sett
 import { Card, PageHeader } from "../_components/ui";
 import { getCards, getCategories, getResponsibles } from "../_lib/api";
 
+export const dynamic = "force-dynamic";
+
 export default async function SettingsPage() {
   const [cards, categories, responsibles] = await Promise.all([getCards(), getCategories(), getResponsibles()]);
 
