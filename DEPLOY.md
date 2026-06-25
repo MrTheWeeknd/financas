@@ -15,7 +15,7 @@ Na Vercel, importe o repositório e configure:
 - Build Command: `npm run build`
 - Output Directory: deixe o padrão da Vercel para Next.js
 
-Também existe um `vercel.json` na raiz para forçar o build do `frontend/` caso a Vercel seja configurada pela raiz do repositório. Mesmo assim, a configuração mais limpa é usar `Root Directory = frontend`.
+Não use `npm --prefix frontend ...` quando o `Root Directory` já estiver configurado como `frontend`, porque a Vercel passa a executar os comandos dentro dessa pasta.
 
 Não crie configuração manual de `functions` para `app/api/...` no painel ou em `frontend/vercel.json`. Os Route Handlers do Next são detectados automaticamente pela Vercel.
 
