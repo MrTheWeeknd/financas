@@ -124,7 +124,9 @@ export type InvoiceCheck = {
   transactions: Transaction[];
 };
 
-export const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+export const apiBaseUrl =
+  process.env.NEXT_PUBLIC_API_URL ??
+  (typeof window !== "undefined" ? "" : process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
 
 async function request<T>(path: string, fallback: T, init?: RequestInit): Promise<T> {
   try {
